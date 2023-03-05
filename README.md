@@ -10,7 +10,7 @@ Um projeto básico utilizando as funções mais utilziadas em cypress, nos possi
 
 ## Installation
 
-Rode `npm install --save-dev` (ou `npm i` versão reduzida) para instalar as dependências de desenvolvimento.
+Rode `npm install` (ou `npm i` versão reduzida) para instalar as dependências de desenvolvimento.
 
 ## Tests
 
