@@ -178,98 +178,166 @@ describe('Central de Atendimento ao Cliente TAT', function () {
     cy.get('#file-upload')
       .should('not.have.value')
       .selectFile('./cypress/fixtures/eu.jpg')
-      .should(function($input){
+      .should(function ($input) {
         expect($input[0].files[0].name).to.equal('eu.jpg')
 
+      })
   })
-})
-
-  
 
 
 
 
-it('seleciona um arquivo simulando um drag-and-drop', function () {
 
 
-  cy.get('#file-upload')
+  it('seleciona um arquivo simulando um drag-and-drop', function () {
+
+
+    cy.get('#file-upload')
       .should('not.have.value')
       .selectFile('./cypress/fixtures/eu.jpg', { action: 'drag-drop' })
-      .should(function($input){
+      .should(function ($input) {
         expect($input[0].files[0].name).to.equal('eu.jpg')
+
+      })
+
+
+  })
+
+  it('seleciona um arquivo utilizando uma fixture para a qual foi dada um alias', function () {
+
+
+    cy.fixture('eu.jpg', { encoding: null }).as('minha foto')
+    cy.get('input[type="file"]#file-upload')
+      .selectFile('@minha foto')
+      .should(function ($input) {
+        expect($input[0].files[0].name).to.equal('eu.jpg')
+
+      })
+
+  })
+
+  it('verifica que a política de privacidade abre em outra aba sem a necessidade de um clique', function () {
+
+    cy.get('a:contains(Política de Privacidade)').should('have.attr', 'target', '_blank')
+    // Esse cy.get poderia ter sido feito assim cy.get('#privacy a) onde o elemento #privacy é uma DIV que dentro dele tem a tag a.
+
 
   })
 
 
-})
-
-it('seleciona um arquivo utilizando uma fixture para a qual foi dada um alias', function () {
+  it('acessa a página da política de privacidade removendo o target e então clicando no link', function () {
 
 
-  cy.fixture('eu.jpg', { encoding: null }).as('minha foto')
-  cy.get('input[type="file"]#file-upload')
-    .selectFile('@minha foto')
-    .should(function($input){
-      expect($input[0].files[0].name).to.equal('eu.jpg')
+    cy.get('a:contains(Política de Privacidade)')
+      .invoke('removeAttr', 'target').click()
+    cy.contains('h1', 'CAC TAT - Política de privacidade').should('be.visible')
+    cy.contains('p', 'Talking About Testing').should('be.visible')
+
+
+  })
+
+  it('testa a página da política de privacidade de forma independente', function () {
+
+    cy.visit('./src/privacy.html')
+    cy.contains('h1', 'CAC TAT - Política de privacidade').should('be.visible')
+    cy.contains('p', 'Talking About Testing').should('be.visible')
+
+
+  })
+
+
+
+  Cypress._.times(5, () => {
+    it('preenche os campos obrigatórios e envia o formulário(versão utilizando cy.clock e cy.tick)', function () {
+
+      cy.clock()
+
+      cy.get('#firstName').type('Jean Paul', { delay: 0 })
+      cy.get('#lastName').type('Khoury Cunha Guerra', { delay: 0 })
+      cy.get('#email').type('jeanpwar@hotmail.com', { delay: 0 })
+      cy.get('#open-text-area').type('Apenas testando meu primeiro exercício real em cypress.Apenas testando meu primeiro exercício real em cypress.Apenas testando meu primeiro exercício real em cypress.Apenas testando meu primeiro exercício real em cypress.cypress.', { delay: 0 })
+      cy.get('button[type="submit"]').click()
+      cy.get('.success').should('be.visible')
+      cy.tick(3000)
+      cy.get('.success').should('be.not.visible')
+
 
     })
 
-})
+  })
 
-it('verifica que a política de privacidade abre em outra aba sem a necessidade de um clique', function(){
+  it('simulates sending a CTRL+V command to paste a long text on a textarea field', function () {
+    const longText = Cypress._.repeat('0123456789', 50)
 
-  cy.get('a:contains(Política de Privacidade)').should('have.attr', 'target', '_blank')
-      // Esse cy.get poderia ter sido feito assim cy.get('#privacy a) onde o elemento #privacy é uma DIV que dentro dele tem a tag a.
-
-
-})
-
-
-it('acessa a página da política de privacidade removendo o target e então clicando no link', function(){
-
-  
-  cy.get('a:contains(Política de Privacidade)')
-  .invoke('removeAttr', 'target').click()
-  cy.contains('h1','CAC TAT - Política de privacidade').should('be.visible')
-  cy.contains('p','Talking About Testing').should('be.visible')
-  
-
-})
-
-it('testa a página da política de privacidade de forma independente',function(){
-
-  cy.visit('./src/privacy.html')
-  cy.contains('h1','CAC TAT - Política de privacidade').should('be.visible')
-  cy.contains('p','Talking About Testing').should('be.visible')
+    cy.get('textarea')
+      .invoke('val', longText)
+      .should('have.value', longText)
+  })
 
 
-})
-
-it.only('preenche os campos obrigatórios e envia o formulário(versão utilizando cy.clock e cy.tick)', function () {
-
-  cy.clock()
-
-  cy.get('#firstName').type('Jean Paul', { delay: 0 })
-  cy.get('#lastName').type('Khoury Cunha Guerra', { delay: 0 })
-  cy.get('#email').type('jeanpwar@hotmail.com', { delay: 0 })
-  cy.get('#open-text-area').type('Apenas testando meu primeiro exercício real em cypress.Apenas testando meu primeiro exercício real em cypress.Apenas testando meu primeiro exercício real em cypress.Apenas testando meu primeiro exercício real em cypress.cypress.', { delay: 0 })
-  cy.get('button[type="submit"]').click()
-  cy.get('.success').should('be.visible')
-  cy.tick(3000)
-  cy.get('.success').should('be.not.visible')
+  it("exibe e esconde as mensagens de sucesso e erro usando o .invoke()", function () {
 
 
-})
+    cy.get('.success')
+      .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .and('contain', 'Mensagem enviada com sucesso.')
+      .invoke('hide')
+      .should('not.be.visible')
+    cy.get('.error')
+      .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .and('contain', 'Valide os campos obrigatórios!')
+      .invoke('hide')
+      .should('not.be.visible')
+  })
 
 
 
+  it('preenche a area de texto usando o comando invoke', function () {
+
+    const muitoTexto = Cypress._.repeat('Jean é muito bom', 50)
+
+    cy.get('#open-text-area')
+      .invoke('val', muitoTexto)
+      .should('have.value', muitoTexto)
+
+
+
+  })
+
+  it('faz uma requisição HTTP', () => {
+    cy.request('https://cac-tat.s3.eu-central-1.amazonaws.com/index.html')
+      .should(function(response){
+        const {status, statusText, body} = response
+        expect(status).to.equal(200)
+        expect(statusText).to.equal('OK')
+        expect(body).to.include('CAC TAT')
 
 
 
 
 
 
-})
+
+      })
+
+    })
+
+    it.only('Achando o gato', function(){
+
+      cy.get('#cat')
+        .should('not.be.visible')
+        .invoke('show')
+        .should('be.visible')
+
+    })
+
+
+
+
  
 
 
@@ -302,6 +370,15 @@ it.only('preenche os campos obrigatórios e envia o formulário(versão utilizan
 
 
 
+
+
+
+
+
+
+
+
+})
 
 
 
